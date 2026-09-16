@@ -148,7 +148,7 @@
       }).join('') : (() => {
         const selectedDate = dateFor(week, mobileDay);
         const isToday = selectedDate.getFullYear() === today.getFullYear() && selectedDate.getMonth() === today.getMonth() && selectedDate.getDate() === today.getDate();
-        const idea = isToday ? '生理期就好好休息吧。' : restIdeas[(week + mobileDay) % restIdeas.length];
+        const idea = isToday ? '生理期特别放假日：今天的任务只有好好休息。' : restIdeas[(week + mobileDay) % restIdeas.length];
         return `<div class="mobile-empty"><b>${isToday ? '今天没课' : '这天没课'}</b>${idea}</div>`;
       })();
       document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{mobileDay=Number(b.dataset.day);render();});
