@@ -74,6 +74,7 @@
   <footer>数据依据你提供的“2026–2027 学年秋已安排的课程”截图手工提炼。日期以“第 4 周为 2026 年 9 月 14 日至 20 日”推算。截图中教师姓名部分字迹不清，因此本版未臆测填入；课程名称、周次、节次、地点如与教务系统有出入，请以教务系统为准。</footer>
   <script>
     const days = ['星期一','星期二','星期三','星期四','星期五','星期六'];
+    const mobileDays = [...days, '星期日'];
     const periods = [
       ['1–2 节','08:10–09:45'], ['3–4 节','10:05–12:00'], ['5–6 节','13:30–15:05'],
       ['7–8 节','15:35–17:10'], ['9–10 节','18:30–20:05'], ['11–12 节','20:15–21:50']
@@ -113,8 +114,9 @@
     today.setHours(0, 0, 0, 0);
     const dayOffset = Math.round((today - semesterMonday) / 86400000);
     let week = Math.min(16, Math.max(1, Math.floor(dayOffset / 7) + 1));
-    let mobileDay = 0;
-    const restIdeas = ['好好休息一下吧。', '陪陪男朋友吧。', '吃点好吃的，补充能量吧。', '去自习一下，把时间留给自己。', '散散步，慢慢享受空出来的时间。'];
+    // JavaScript 的周日为 0；转换为课表的周一为 0、周日为 6。
+    let mobileDay = (today.getDay() + 6) % 7;
+    const restIdeas = ['好好休息一下吧。', '吃点好吃的，补充能量吧。', '去自习一下，把时间留给自己。', '散散步，慢慢享受空出来的时间。'];
     const $ = s => document.querySelector(s);
     function render() {
       const monday = dateFor(week, 0), sunday = dateFor(week, 6);
@@ -134,11 +136,11 @@
       });
       $('#grid').innerHTML = html;
       const dayEntries = active.filter(c=>c.day===mobileDay).sort((a,b)=>a.period-b.period);
-      $('#dayTabs').innerHTML = days.map((day,index) => {
+      $('#dayTabs').innerHTML = mobileDays.map((day,index) => {
         const total = active.filter(c=>c.day===index).length;
         return `<button data-day="${index}" class="${index===mobileDay?'active':''} ${total?'':'no-class'}">${day.replace('星期','周')} ${shortDate(dateFor(week,index))}${total?` · ${total}`:' · 无课'}</button>`;
       }).join('');
-      $('#mobileDayTitle').textContent = `${days[mobileDay]} · ${longDate(dateFor(week,mobileDay))}`;
+      $('#mobileDayTitle').textContent = `${mobileDays[mobileDay]} · ${longDate(dateFor(week,mobileDay))}`;
       $('#mobileDayCount').textContent = dayEntries.length ? `${dayEntries.length} 个上课时段` : '当天暂无排课';
       $('#mobileCards').innerHTML = dayEntries.length ? dayEntries.map(c => {
         const [periodLabel,time] = periods[c.period];
@@ -146,7 +148,7 @@
       }).join('') : (() => {
         const selectedDate = dateFor(week, mobileDay);
         const isToday = selectedDate.getFullYear() === today.getFullYear() && selectedDate.getMonth() === today.getMonth() && selectedDate.getDate() === today.getDate();
-        const idea = restIdeas[(week + mobileDay) % restIdeas.length];
+        const idea = isToday ? '生理期就好好照顾自己吧。' : restIdeas[(week + mobileDay) % restIdeas.length];
         return `<div class="mobile-empty"><b>${isToday ? '今天没课' : '这天没课'}</b>${idea}</div>`;
       })();
       document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{mobileDay=Number(b.dataset.day);render();});
